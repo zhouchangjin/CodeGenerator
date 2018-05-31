@@ -108,7 +108,7 @@ public class JavaCode extends Code{
 		JavaCode code=new JavaCode();
 		code.setClassName(className);
 		code.setPackageName(packageName);
-		code.addImport("a,b,c");
+		code.addImport("a,b,c;");
 		code.addProperty("name", "String");
 		code.regenerateCode();
 		code.systemout();
