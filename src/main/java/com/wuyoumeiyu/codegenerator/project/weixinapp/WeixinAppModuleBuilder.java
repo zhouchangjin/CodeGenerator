@@ -15,10 +15,9 @@ public class WeixinAppModuleBuilder extends DefaultModuleBuilder {
 		p.setProjectName("myW");
 		
 		module.setProject(p);
-		module.setModuleName("testM");
+		
 		String path=WeixinAppModuleBuilder.class.getResource("/wxappmodule.zip").getPath();
 		module.setModuleSpecFileName(path);
-
 		WeixinAppModuleBuilder wpBuilder=new WeixinAppModuleBuilder();
 		wpBuilder.buildModule(module);
 

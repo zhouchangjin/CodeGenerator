@@ -1,11 +1,22 @@
 package com.wuyoumeiyu.codegenerator.project;
 
+import java.util.HashMap;
 
 public class Module {
 	
 	Project project;
-	String moduleName;
 	String moduleSpecFileName;
+	
+	HashMap<String,String> paramsMap=new HashMap<String,String>();
+	
+	
+	public void set(String paramName,String paramValue) {
+		paramsMap.put(paramName, paramValue);
+	}
+	
+	public String get(String paramName) {
+		return paramsMap.get(paramName);
+	}
 	
 	public String getModuleSpecFileName() {
 		return moduleSpecFileName;
@@ -24,13 +35,6 @@ public class Module {
 		this.project = project;
 	}
 
-	public String getModuleName() {
-		return moduleName;
-	}
-
-	public void setModuleName(String moduleName) {
-		this.moduleName = moduleName;
-	}
 
 	
 }

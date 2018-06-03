@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -21,9 +22,29 @@ import com.gamewolf.util.file.FileUtil;
 
 public class DefaultModuleBuilder implements ModuleBuilder {
 	
-	public static final String MODULE_NAME="{moduleName}"; 
-	public static final String PROJECT_NAME="{projectName}";
-	public static final String PROJECT_FOLDER="{projectFolder}";
+	HashSet<String> filterSet=new HashSet<String>();
+	
+	String wrapperAhead;
+	String wrapperBehind;
+	
+	public DefaultModuleBuilder() {
+
+	}
+	
+	public static DefaultModuleBuilder startBuild() {
+		return new DefaultModuleBuilder();
+	}
+	
+	private void addParam(String param) {
+		filterSet.add(param);
+	}
+	
+	private void addParams(String params) {
+		String paramsarr[]=params.split(",");
+		for(String param:paramsarr) {
+			addParam(param);
+		}
+	}
 
 	public void buildModule(Module module) {
 		String fileName = module.getModuleSpecFileName();
@@ -31,7 +52,14 @@ public class DefaultModuleBuilder implements ModuleBuilder {
 		Map<String,StringBuffer> list=parseModuleFile(fileName);
 		StringBuffer sb=list.get("module.xml");
 		XMLNode node=XMLReader.parseXMLString(sb.toString());
-		System.out.println(node.toXML());
+		
+		XMLNode settingNode=node.getNode("Setting");
+		String params=settingNode.getNode("Params").getValue();
+		wrapperAhead=settingNode.getNode("WrapperAhead").getValue();
+		wrapperBehind=settingNode.getNode("WrapperBehind").getValue();
+		addParams(params);
+		
+		
 		List<XMLNode> folderList=node.getNodes("Folder");
 		for(XMLNode folderNode:folderList) {
 			 String pathName=folderNode.getAttribute("name").toString();
@@ -46,9 +74,10 @@ public class DefaultModuleBuilder implements ModuleBuilder {
 				 String filePath=moduleFolder+"/"+processVariables(name,module);
 				 File f=new File(filePath);
 				 String s=list.get(templateFile).toString();
+				 String code=processVariables(s, module);
 				 try {
 					BufferedWriter bw=new BufferedWriter(new FileWriter(f));
-					bw.append(s);
+					bw.append(code);
 					bw.flush();
 					bw.close();
 					
@@ -59,7 +88,7 @@ public class DefaultModuleBuilder implements ModuleBuilder {
 			 }
 			 
 		}
-
+		
 	}
 	
 	public static Map<String,StringBuffer> parseModuleFile(String path) {
@@ -91,8 +120,14 @@ public class DefaultModuleBuilder implements ModuleBuilder {
 	
 	
 	String processVariables(String input,Module mod) {
-		String res=input.replace(MODULE_NAME, mod.getModuleName());
-		res=res.replace(PROJECT_FOLDER, mod.getProject().getProjectFolder());
+		String res=input;
+		for(String param:filterSet) {
+			
+			String replaceBefor=wrapperAhead+param+wrapperBehind;
+			String replaceWith=mod.get(param);
+			res=res.replace(replaceBefor, replaceWith);
+			
+		}
 		return res;
 	}
 
