@@ -5,12 +5,17 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -69,22 +74,91 @@ public class DefaultModuleBuilder implements ModuleBuilder {
 			 List<XMLNode> fileNodes=folderNode.getNodes("File");
 			 for(XMLNode fileNode:fileNodes) {
 				 String name=fileNode.getAttribute("name").toString();
+				 if(fileNode.getAttribute("type")!=null) {
+					 
+					 String typeName=fileNode.getAttribute("type").toString();
+					 if("mod".equals(typeName)) {
+						 List<String> codes=new LinkedList<String>(); 
+						 String filePath=moduleFolder+"/"+processVariables(name,module);
+						 File f=new File(filePath);
+						 if(f.exists()) {
+							 try {
+								BufferedReader br=new BufferedReader(new FileReader(f));
+								String line=null;
+								while((line=br.readLine())!=null) {
+									if("".equals(line)) {
+										continue;
+									}
+									codes.add(line);
+								}
+							} catch (FileNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						 }
+						 ListIterator<String> lines=codes.listIterator();
+						 String templateFile=fileNode.getAttribute("template").toString();
+						 String s=list.get(templateFile).toString();
+						 String code=processVariables(s, module);
+						 //System.out.println(code);
+						 XMLNode modNode=XMLReader.parseXMLString(code);
+						 List<XMLNode> parts=modNode.getNodes("Part");
+						 for(XMLNode p:parts) {
+							XMLNode startNode= p.getNode("Start");
+							XMLNode endNode=p.getNode("End");
+							XMLNode codeNode=p.getNode("Code");
+							String startLine=startNode.getValue().trim();
+							String endLine=endNode.getValue().trim();
+							String innerCode=codeNode.getValue();
+							while(lines.hasNext()) {
+								String currentLine=lines.next();
+								if(currentLine.contains(startLine)) {
+									String nextLine=codes.get(lines.nextIndex());
+									if(nextLine.contains(endLine)) {
+										break;
+									}
+								}
+							}
+							
+							lines.add(innerCode);
+						 }
+						 try {
+							BufferedWriter bw=new BufferedWriter(new FileWriter(f));
+							for(String lineCode:codes) {
+								bw.append(lineCode);
+								bw.newLine();
+								bw.flush();
+								
+							}
+							bw.close();
+						 } catch (IOException e) {
+							e.printStackTrace();
+						 }
+						 
+					 }
+					 
+				 }else {
+					 String templateFile=fileNode.getAttribute("template").toString();
+					 String filePath=moduleFolder+"/"+processVariables(name,module);
+					 File f=new File(filePath);
+					 String s=list.get(templateFile).toString();
+					 String code=processVariables(s, module);
+					 try {
+						BufferedWriter bw=new BufferedWriter(new FileWriter(f));
+						bw.append(code);
+						bw.flush();
+						bw.close();
+						
+					 } catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					 }
+				 }
 				 
-				 String templateFile=fileNode.getAttribute("template").toString();
-				 String filePath=moduleFolder+"/"+processVariables(name,module);
-				 File f=new File(filePath);
-				 String s=list.get(templateFile).toString();
-				 String code=processVariables(s, module);
-				 try {
-					BufferedWriter bw=new BufferedWriter(new FileWriter(f));
-					bw.append(code);
-					bw.flush();
-					bw.close();
-					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				 
 			 }
 			 
 		}
