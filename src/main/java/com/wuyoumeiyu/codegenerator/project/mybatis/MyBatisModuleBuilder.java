@@ -12,12 +12,12 @@ public class MyBatisModuleBuilder extends DefaultModuleBuilder {
 		Module m=new Module();
 		m.setProject(project);
 		m.setModuleSpecFileName("c:/work/data/test/lxmy.zip");
-		m.set("entity", "dispatching");
-		m.set("model", "Dispatching");
-		m.set("module", "dispatch");
+		m.set("entity", "bookSet");
+		m.set("model", "BookSet");
+		m.set("module", "book");
 		m.set("folder", "c:/work/Workspace/JEE/booksharing");
-		m.set("path", "dispatching");
-		m.set("table", "dispatching");
+		m.set("path", "bookset");
+		m.set("table", "book_set");
 		MyBatisModuleBuilder builder=new MyBatisModuleBuilder();
 		builder.buildModule(m);
 	}
